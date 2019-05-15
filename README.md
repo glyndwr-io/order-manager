@@ -1,0 +1,2 @@
+# order-manager
+Order Manager is a Qt/SQL/Python based tool for tracking special orders, warranty claims, and online orders in a retail scenario. The tool was designed for the specific demands by IBDs (Independent Bicycle Dealers) but can be useful in many different retail/service scenarios. Order Manager is network-based and cross platform, making it incredibly flexible for businesses with multiple locations and/or with equipment running multiple different operating systems.
