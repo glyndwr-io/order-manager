@@ -1,6 +1,6 @@
 from datetime import date
 
-versionNumber = "v0.1.11"
+versionNumber = "v0.1.12"
 
 sqlConfig = {
     'user':'', 
