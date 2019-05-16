@@ -253,6 +253,67 @@ def findOrder(searchText):
     cnx.close()
     return results
 
+def filterOrders(filterName, filterValue):
+
+    cnx = connect()
+
+    if filterValue == None:
+        cnx.close()
+        return
+    elif type(filterValue) != type(''):
+        cnx.close()
+        return
+
+    filterValue=sanitizeInput(filterValue)
+    
+    query=("SELECT * FROM Orders" 
+        "   WHERE "+filterName+" = "+filterValue
+    )
+
+    output=[]
+    results=[]
+
+    #Open Cursor for executing the query
+    cursor = cnx.cursor()
+
+    #Run the SELECT query
+    cursor.execute(query)
+
+    for item in cursor:
+        output.append(item)
+
+    #DEBUG: Print Query output to command line
+
+    for i in range(len(output)):
+        results.append({
+            'customerFirstName':output[i][0], #Type TEXT
+            'customerLastName':output[i][1], #Type TEXT
+            'customerPhoneNo':output[i][2], #Type BIGINT
+            'customerEmail' :output[i][3], #Type TEXT
+            'productDesc' :output[i][4], #Type TEXT
+            'productPartNo' :output[i][5], #Type TEXT
+            'productSupplier' :output[i][6], #Type TEXT
+            'dateRequested' :output[i][7], #Type DATE
+            'dateOrdered' :output[i][8], #Type DATE
+            'orderID' :output[i][9], #Type BIGINT
+            'orderStatus' :output[i][10], #Type TINYINT
+            'orderDesc' :output[i][11], #Type Text
+            'paymentStatus' :output[i][12], #Type TINTINT
+            'isWorkOrder' :output[i][13], #Type BOOLEAN
+            'salesRep':output[i][14], #Type TEXT
+            'objectID':output[i][15], #Type INT
+            'price':output[i][16], #Type FLOAT
+            'weight':output[i][17], #Type INT
+            'dimLength':output[i][18], #Type INT
+            'dimWidth':output[i][19], #Type INT
+            'dimHeight':output[i][20], #Type INT
+            })
+
+    #Tie up loose ends and return
+    cursor.close()
+    cnx.close()
+    return results
+
 def deleteOrder(ID):
     cnx = connect()
 
