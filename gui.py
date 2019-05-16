@@ -147,6 +147,17 @@ class mainWindow(QMainWindow):
         self.host.setText(sqlConfig['host'])
         self.dataBase = QLineEdit()
         self.dataBase.setText(sqlConfig['database'])
+
+        url = QLineEdit()
+        url.setText(wcAPIConfig['url'])
+        consumerKey = QLineEdit()
+        consumerKey.setText(wcAPIConfig['consumer_key'])
+        consumerSecret = QLineEdit()
+        consumerSecret.setEchoMode(QLineEdit.Password)
+        consumerSecret.setText(wcAPIConfig['consumer_secret'])
+        version = QLineEdit()
+        version.setText(wcAPIConfig['version'])
+
         self.title1 = QLabel('Database Connection Settings:')
         self.title2 = QLabel('WooCommerce Connection Settings:')
         
@@ -157,6 +168,10 @@ class mainWindow(QMainWindow):
         self.wLayout.addRow('Host:', self.host)
         self.wLayout.addRow('Database:', self.dataBase)
         self.wLayout.addRow(self.title2)
+        self.wLayout.addRow('WooCommerce URL', url)
+        self.wLayout.addRow('Consumer Key', consumerKey)
+        self.wLayout.addRow('Consumer Secret', consumerSecret)
+        self.wLayout.addRow('API Version', version)
 
         self.w.setGeometry(500, 400, 400, 300)
         self.w.setWindowTitle('Settings')
@@ -318,13 +333,26 @@ class mainWindowArea(QWidget):
         self.layout = QVBoxLayout(self)
 
     # Initialize tab screen
+        self.orderStatus = ['Requested','Order Placed','Order Recieved',
+        'Backordered','Not Available', 'Info Requested', 'Insuffecient Information']
         self.search = QLineEdit()
+        self.filterOrderStatus = QComboBox()
+        self.filterOrderStatusLabel = QLabel('Filter by Order Status:')
+        self.filterOrderStatus.setMaximumWidth(140)
+        self.filterOrderStatusLabel.setMaximumWidth(108)
         self.search.setPlaceholderText('[Press Enter to Search] First and Last name, '
             'Phone Number, Email, Product, Part Number, or Order Notes.')
         self.search.returnPressed.connect(self.searchOrders)
         self.search.setDisabled(False)
         self.searchArea=QFormLayout()
+        self.searchAreaFilters=QHBoxLayout()
+        self.searchAreaFilters.addWidget(self.filterOrderStatusLabel)
+        self.searchAreaFilters.addWidget(self.filterOrderStatus)
+        self.searchArea.addRow(self.searchAreaFilters)
         self.searchArea.addRow('Search:', self.search)
+        self.filterOrderStatus.addItem('')
+        self.filterOrderStatus.addItems(self.orderStatus)
+        self.filterOrderStatus.currentIndexChanged.connect(self.filterOrders)
         self.tabs = QTabWidget()
         self.tab1 = QWidget()   
         self.tab2 = QWidget()
@@ -449,8 +477,6 @@ class mainWindowArea(QWidget):
         self.objectIDs = {}
         matrixOrders = {}
         matrixParents = {}
-        self.orderStatus = ['Requested','Order Placed','Order Recieved',
-        'Backordered','Not Available', 'Info Requested', 'Insuffecient Information']
         self.paymentStatus = ['Pending Payment','Partially Paid','Fully Paid']
 
         specialOrders = fetchOrders() #fetchOrders[x][9] is the Layaway Number
@@ -659,6 +685,212 @@ class mainWindowArea(QWidget):
         self.paymentStatus = ['Pending Payment','Partially Paid','Fully Paid']
 
         specialOrders = findOrder(self.search.text())
+        importantFont = QFont()
+
+        for stuff in specialOrders:
+            if stuff['orderID'] in matrixOrders:
+                matrixOrders[stuff['orderID']].append(stuff['orderID'])
+            else:
+                matrixOrders[stuff['orderID']] = [stuff['objectID']]
+        
+        for obj in matrixOrders:
+            if len(matrixOrders[obj]) > 1:
+                matrixParents[obj] = QTreeWidgetItem()
+                self.tableWidgetSO.addTopLevelItem(matrixParents[obj])
+                matrixParents[obj].setText(4, 'Multi-part Order')
+                for i in range(15):
+                    matrixParents[obj].setBackground(i,QColor(255, 255, 150))
+
+        j=0
+        for item in specialOrders:
+            if self.orderStatus[item['orderStatus']] == 'Requested' or \
+            self.orderStatus[item['orderStatus']] == 'Info Requested':
+                importantFont.setBold(True)
+            else:
+                importantFont.setBold(False)
+            
+            if len(matrixOrders[item['orderID']]) > 1:
+                
+                #Scan array to see if there are any entries for this is objectIDs
+
+                #if there isnt, we need to make a new QTreeWidgetItem and add an
+                #an order as a child
+
+                #if there is, we add the order as a child to the existing QTreeWidgetItem
+
+                self.orderList.append(QTreeWidgetItem())
+                matrixParents[item['orderID']].addChild(self.orderList[len(self.orderList)-1])
+                matrixParents[item['orderID']].setText(0, str(item['customerFirstName']))
+                matrixParents[item['orderID']].setFont(0, importantFont)
+                matrixParents[item['orderID']].setText(1, str(item['customerLastName']))
+                matrixParents[item['orderID']].setFont(1, importantFont)
+                matrixParents[item['orderID']].setText(2, self.parsePhoneNumber(str(item['customerPhoneNo'])))
+                matrixParents[item['orderID']].setFont(2, importantFont)
+                matrixParents[item['orderID']].setText(3, str(item['customerEmail']))
+                matrixParents[item['orderID']].setFont(3, importantFont)
+                matrixParents[item['orderID']].setFont(4, importantFont)
+                matrixParents[item['orderID']].setText(9, str(item['orderID']))
+                matrixParents[item['orderID']].setFont(9, importantFont)
+                if item['isWorkOrder'] == 1:
+                    matrixParents[item['orderID']].setText(13, "Workorder")
+                    matrixParents[item['orderID']].setForeground(13,QColor("Blue"))
+                    matrixParents[item['orderID']].setFont(13, importantFont)
+                else:
+                    matrixParents[item['orderID']].setText(13, "Layaway")
+                    matrixParents[item['orderID']].setForeground(13,QColor("Green"))
+                    matrixParents[item['orderID']].setFont(13, importantFont)
+
+                self.objectIDs[j] = item['objectID']
+                #First Name Column
+                self.orderList[j].setText(0, str(item['customerFirstName']))
+                self.orderList[j].setFont(0, importantFont)
+                #Last Name Column
+                self.orderList[j].setText(1, str(item['customerLastName']))
+                self.orderList[j].setBackground(1,QColor("lightGray"))
+                self.orderList[j].setFont(1, importantFont)
+                #Phone Column
+                self.orderList[j].setText(2, self.parsePhoneNumber(str(item['customerPhoneNo'])))
+                self.orderList[j].setFont(2, importantFont)
+                #Email Column
+                self.orderList[j].setText(3, str(item['customerEmail']))
+                self.orderList[j].setBackground(3,QColor("lightGray"))
+                self.orderList[j].setFont(3, importantFont)
+                #Things
+                self.orderList[j].setText(4, str(item['productDesc']))
+                self.orderList[j].setFont(4, importantFont)
+                #Things
+                self.orderList[j].setText(5, str(item['productPartNo']))
+                self.orderList[j].setBackground(5,QColor("lightGray"))
+                self.orderList[j].setFont(5, importantFont)
+                #Things
+                self.orderList[j].setText(6, str(item['productSupplier']))
+                self.orderList[j].setFont(6, importantFont)
+                #Things
+                self.orderList[j].setText(7, str(item['dateRequested']))
+                self.orderList[j].setBackground(7,QColor("lightGray"))
+                self.orderList[j].setFont(7, importantFont)
+                #Date Ordered
+                if self.orderStatus[item['orderStatus']] == 'Requested':
+                    self.orderList[j].setText(8, '')
+                elif item['dateOrdered'] == None:
+                    self.orderList[j].setText(8, '')
+                else:
+                    self.orderList[j].setText(8, str(item['dateOrdered']))
+                self.orderList[j].setFont(8, importantFont)
+                #Things
+                self.orderList[j].setText(9, str(item['orderID']))
+                self.orderList[j].setBackground(9,QColor("lightGray"))
+                self.orderList[j].setFont(9, importantFont)
+                #Order Status Column
+                self.orderList[j].setText(10, self.orderStatus[item['orderStatus']])
+                self.orderList[j].setFont(10, importantFont)
+                #Order Status Column
+                self.orderList[j].setText(11, str(round(item['price'], 3)))
+                self.orderList[j].setBackground(11,QColor("lightGray"))
+                self.orderList[j].setFont(11, importantFont)
+                #Payment Status Colum
+                self.orderList[j].setText(12, self.paymentStatus[item['paymentStatus']])
+                self.orderList[j].setFont(12, importantFont)
+                #Order Type Column
+                if item['isWorkOrder'] == 1:
+                    self.orderList[j].setText(13, "Workorder")
+                    self.orderList[j].setForeground(13,QColor("Blue"))
+                    self.orderList[j].setBackground(13,QColor("lightGray"))
+                else:
+                    self.orderList[j].setText(13, "Layaway")
+                    self.orderList[j].setForeground(13,QColor("Green"))
+                    self.orderList[j].setBackground(13,QColor("lightGray"))
+                self.orderList[j].setFont(13, importantFont)
+                #Things
+                self.orderList[j].setText(14, str(item['salesRep']))
+                self.orderList[j].setFont(14, importantFont)
+                
+                self.tableWidgetSO.addTopLevelItem(self.orderList[j])
+            
+            else:
+                self.orderList.append(QTreeWidgetItem())
+                self.objectIDs[j] = item['objectID']
+                #First Name Column
+                self.orderList[j].setText(0, str(item['customerFirstName']))
+                self.orderList[j].setFont(0, importantFont)
+                #Last Name Column
+                self.orderList[j].setText(1, str(item['customerLastName']))
+                self.orderList[j].setBackground(1,QColor("lightGray"))
+                self.orderList[j].setFont(1, importantFont)
+                #Phone Column
+                self.orderList[j].setText(2, self.parsePhoneNumber(str(item['customerPhoneNo'])))
+                self.orderList[j].setFont(2, importantFont)
+                #Email Column
+                self.orderList[j].setText(3, str(item['customerEmail']))
+                self.orderList[j].setBackground(3,QColor("lightGray"))
+                self.orderList[j].setFont(3, importantFont)
+                #Things
+                self.orderList[j].setText(4, str(item['productDesc']))
+                self.orderList[j].setFont(4, importantFont)
+                #Things
+                self.orderList[j].setText(5, str(item['productPartNo']))
+                self.orderList[j].setBackground(5,QColor("lightGray"))
+                self.orderList[j].setFont(5, importantFont)
+                #Things
+                self.orderList[j].setText(6, str(item['productSupplier']))
+                self.orderList[j].setFont(6, importantFont)
+                #Things
+                self.orderList[j].setText(7, str(item['dateRequested']))
+                self.orderList[j].setBackground(7,QColor("lightGray"))
+                self.orderList[j].setFont(7, importantFont)
+                #Date Ordered
+                if self.orderStatus[item['orderStatus']] == 'Requested':
+                    self.orderList[j].setText(8, '')
+                elif item['dateOrdered'] == None:
+                    self.orderList[j].setText(8, '')
+                else:
+                    self.orderList[j].setText(8, str(item['dateOrdered']))
+                self.orderList[j].setFont(8, importantFont)
+                #Things
+                self.orderList[j].setText(9, str(item['orderID']))
+                self.orderList[j].setBackground(9,QColor("lightGray"))
+                self.orderList[j].setFont(9, importantFont)
+                #Order Status Column
+                self.orderList[j].setText(10, self.orderStatus[item['orderStatus']])
+                self.orderList[j].setFont(10, importantFont)
+                #Order Status Column
+                self.orderList[j].setText(11, str(round(item['price'], 3)))
+                self.orderList[j].setBackground(11,QColor("lightGray"))
+                self.orderList[j].setFont(11, importantFont)
+                #Payment Status Colum
+                self.orderList[j].setText(12, self.paymentStatus[item['paymentStatus']])
+                self.orderList[j].setFont(12, importantFont)
+                #Order Type Column
+                if item['isWorkOrder'] == 1:
+                    self.orderList[j].setText(13, "Workorder")
+                    self.orderList[j].setForeground(13,QColor("Blue"))
+                    self.orderList[j].setBackground(13,QColor("lightGray"))
+                else:
+                    self.orderList[j].setText(13, "Layaway")
+                    self.orderList[j].setForeground(13,QColor("Green"))
+                    self.orderList[j].setBackground(13,QColor("lightGray"))
+                self.orderList[j].setFont(13, importantFont)
+                #Things
+                self.orderList[j].setText(14, str(item['salesRep']))
+                self.orderList[j].setFont(14, importantFont)
+                
+                self.tableWidgetSO.addTopLevelItem(self.orderList[j])
+            
+            j+=1
+        #print(self.objectIDs)
+        for i in range(len(self.headerListSO)):
+                self.tableWidgetSO.resizeColumnToContents(i)
+
+    def filteredOrdersLoop(self):
+        self.orderList = []
+        self.objectIDs = {}
+        matrixOrders = {}
+        matrixParents = {}
+        self.orderStatus = ['Requested','Order Placed','Order Recieved',
+        'Backordered','Not Available', 'Info Requested', 'Insuffecient Information']
+        self.paymentStatus = ['Pending Payment','Partially Paid','Fully Paid']
+
+        specialOrders = filterOrders('orderStatus', str(self.filterOrderStatus.currentIndex()-1))
         importantFont = QFont()
 
         for stuff in specialOrders:
@@ -1377,6 +1609,13 @@ class mainWindowArea(QWidget):
             return
         self.tableWidgetSO.clear()
         self.searchedOrdersLoop()
+
+    def filterOrders(self):
+        self.tableWidgetSO.clear()
+        if self.filterOrderStatus.currentText() == '':
+            self.addOrdersLoop()
+        else:
+            self.filteredOrdersLoop()
 
 # Claim Related Functions
     def addClaimsLoop(self):
