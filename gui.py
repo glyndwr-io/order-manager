@@ -478,6 +478,8 @@ class mainWindowArea(QWidget):
         matrixOrders = {}
         matrixParents = {}
         self.paymentStatus = ['Pending Payment','Partially Paid','Fully Paid']
+        self.orderStatus = ['Requested','Order Placed','Order Recieved',
+        'Backordered','Not Available', 'Info Requested', 'Insuffecient Information']
 
         specialOrders = fetchOrders() #fetchOrders[x][9] is the Layaway Number
         importantFont = QFont()
@@ -1622,7 +1624,7 @@ class mainWindowArea(QWidget):
         self.claimList = []
         self.objectClaimIDs = {}
         self.orderStatus = ['Requested','Order Placed','Order Recieved',
-        'Backordered','Not Available', 'Info Requested']
+        'Backordered','Not Available', 'Info Requested', 'Insuffecient Information']
         self.paymentStatus = ['Pending Payment','Partially Paid','Fully Paid']
 
         warrantyClaims = fetchClaims()
@@ -1840,7 +1842,7 @@ class mainWindowArea(QWidget):
             url=wcAPILegacyConfig['url'],
             consumer_key=wcAPILegacyConfig['consumer_key'],
             consumer_secret=wcAPILegacyConfig['consumer_secret'],
-            wp_api=wcAPILegacyConfig['wc_api'],
+            wp_api=wcAPILegacyConfig['wp_api'],
             version=wcAPILegacyConfig['version'],
             verify_ssl=wcAPILegacyConfig['verify_ssl'],
             timeout=wcAPILegacyConfig['timeout'],
