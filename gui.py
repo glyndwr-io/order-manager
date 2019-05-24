@@ -1563,6 +1563,7 @@ class mainWindowArea(QWidget):
             self.closeRefresh()
             return True
         else:
+            self.w.warning()
             return False
 
     def commitInfoRequest(self):
@@ -1930,4 +1931,7 @@ class newOrderWindow(QWidget):
         QWidget.__init__(self)
         self.initUI()
     def initUI(self):
+        return
+    def warning(self):
+        about = QMessageBox.about(self, 'Incomplete', "You're missing information! Please check all the feilds in red and make sure you've selected a Supplier and Sales Person")
         return 
