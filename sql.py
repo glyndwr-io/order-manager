@@ -96,13 +96,13 @@ def writeOrder(dataOrder=orderTemplate):
         "(customerFirstName, customerLastName, customerPhoneNo, customerEmail,"
         "productDesc, productPartNo, productSupplier, dateRequested, dateOrdered,"
         "orderID,orderStatus,orderDesc,paymentStatus,isWorkOrder,salesRep,"
-        "objectID,price,weight,dimLength,dimWidth,dimHeight)"
+        "objectID,price,weight,dimLength,dimWidth,dimHeight,qty)"
         " VALUES (%(customerFirstName)s, %(customerLastName)s, %(customerPhoneNo)s,"
         " %(customerEmail)s, %(productDesc)s, %(productPartNo)s, %(productSupplier)s,"
         " %(dateRequested)s, %(dateOrdered)s, %(orderID)s, %(orderStatus)s,"
         " %(orderDesc)s, %(paymentStatus)s, %(isWorkOrder)s, %(salesRep)s,"
         " %(objectID)s, %(price)s, %(weight)s, %(dimLength)s, %(dimWidth)s,"
-        " %(dimHeight)s);")
+        " %(dimHeight)s, %(qty)s);")
 
     #Write and commit changes to database
     cursor.execute(addOrder, dataOrder)
@@ -178,6 +178,7 @@ def fetchOrder(orderNo):
         'dimLength':output[0][18], #Type INT
         'dimWidth':output[0][19], #Type INT
         'dimHeight':output[0][20], #Type INT
+        'qty':output[0][21], #Type TINYINT
         }
 
     #Tie up loose ends and return
@@ -246,6 +247,7 @@ def findOrder(searchText):
             'dimLength':output[i][18], #Type INT
             'dimWidth':output[i][19], #Type INT
             'dimHeight':output[i][20], #Type INT
+            'qty':output[0][21], #Type TINYINT
             })
 
     #Tie up loose ends and return
@@ -307,6 +309,7 @@ def filterOrders(filterName, filterValue):
             'dimLength':output[i][18], #Type INT
             'dimWidth':output[i][19], #Type INT
             'dimHeight':output[i][20], #Type INT
+            'qty':output[0][21], #Type TINYINT
             })
 
     #Tie up loose ends and return
