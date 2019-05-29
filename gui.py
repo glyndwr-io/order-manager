@@ -1146,10 +1146,13 @@ class mainWindowArea(QWidget):
         self.payStatus = QComboBox()
         self.orderType = QCheckBox()
         self.salesRep = QComboBox()
+        self.qty = QSpinBox()
         
         self.payStatus.addItems(self.paymentStatus)
         self.salesRep.addItems(staffMembers)
         self.supplier.addItems(suppliers)
+        self.qty.setMaximum(999)
+        self.qty.setMinimum(1)
         
         #self.sendOrder = QPushButton("Create")
         #self.cancelCreation = QPushButton("Cancel")
@@ -1174,6 +1177,7 @@ class mainWindowArea(QWidget):
         self.wLayoutPart.addRow("Supplier", self.supplier)
         self.wLayoutPart.addRow("Price", self.partPrice)
         self.wLayoutPart.addRow("Placed By", self.salesRep)
+        self.wLayoutPart.addRow("Quantity:", self.qty)
 
         self.wLayoutNotes.addRow("Notes:", self.orderDesc)
         self.objectID = 0
@@ -1216,10 +1220,13 @@ class mainWindowArea(QWidget):
         self.payStatus = QComboBox()
         self.orderType = QCheckBox()
         self.salesRep = QComboBox()
+        self.qty = QSpinBox()
         
         self.payStatus.addItems(self.paymentStatus)
         self.salesRep.addItems(staffMembers)
         self.supplier.addItems(suppliers)
+        self.qty.setMaximum(999)
+        self.qty.setMinimum(1)
         
         #self.sendOrder = QPushButton("Create")
         #self.cancelCreation = QPushButton("Cancel")
@@ -1244,6 +1251,7 @@ class mainWindowArea(QWidget):
         #self.wLayoutPart.addRow("Supplier", self.supplier)
         #self.wLayoutPart.addRow("Price", self.partPrice)
         self.wLayoutPart.addRow("Placed By", self.salesRep)
+        self.wLayoutPart.addRow("Quantity:", self.qty)
 
         self.wLayoutNotes.addRow("Notes:", self.orderDesc)
         self.objectID = 0
@@ -1288,7 +1296,7 @@ class mainWindowArea(QWidget):
         self.payStatus = QComboBox()
         self.orderType = QCheckBox()
         self.salesRep = QComboBox()
-
+        self.qty = QSpinBox()
 
         data = fetchOrder(self.selectedOrderNumber)
         self.custFirstName.setDisabled(True)
@@ -1304,6 +1312,8 @@ class mainWindowArea(QWidget):
         self.orderNumber.setText(str(data['orderID']))
         if data['isWorkOrder'] == 1:
                 self.orderType.setChecked(True)
+        self.qty.setMaximum(999)
+        self.qty.setMinimum(1)
         
         self.payStatus.addItems(self.paymentStatus)
         self.salesRep.addItems(staffMembers)
@@ -1329,6 +1339,7 @@ class mainWindowArea(QWidget):
         self.wLayoutPart.addRow("Supplier", self.supplier)
         self.wLayoutPart.addRow("Price", self.partPrice)
         self.wLayoutPart.addRow("Placed By", self.salesRep)
+        self.wLayoutPart.addRow("Quantity:", self.qty)
 
         self.wLayoutNotes.addRow("Notes:", self.orderDesc)
         self.objectID = 0
@@ -1374,7 +1385,10 @@ class mainWindowArea(QWidget):
         self.salesRep = QComboBox()
         self.dateOrdered = QCalendarWidget()
         self.dateRequested = QLabel()
-        
+        self.qty = QSpinBox()
+
+        self.qty.setMaximum(999)
+        self.qty.setMinimum(1)
         self.payStatus.addItems(self.paymentStatus)
         self.salesRep.addItems(staffMembers)
         self.supplier.addItems(suppliers)
@@ -1402,6 +1416,7 @@ class mainWindowArea(QWidget):
         self.wLayoutPart.addRow("Placed By", self.salesRep)
         self.wLayoutPart.addRow("Requested On:", self.dateRequested)
         self.wLayoutPart.addRow("Order Status:", self.orderStatusChoice)
+        self.wLayoutPart.addRow("Quantity:", self.qty)
 
         self.wLayoutNotes.addRow("Date Ordered", self.dateOrdered)
         self.wLayoutNotes.addRow("Notes:", self.orderDesc)
@@ -1428,6 +1443,7 @@ class mainWindowArea(QWidget):
             self.orderDesc.setText(data['orderDesc'])
             self.dateOrdered.setGridVisible(True)
             self.dateRequested.setText(data['dateRequested'].isoformat())
+            self.qty.setValue(data['qty'])
             self.stickyDate = data['dateRequested'].isoformat()
             self.objectID = data['objectID']
 
@@ -1555,6 +1571,7 @@ class mainWindowArea(QWidget):
                 'dimLength': 55, #Type INT
                 'dimWidth':9, #Type INT
                 'dimHeight':33, #Type INT
+                'qty':self.qty.value(),
                 }
             if data['orderStatus'] == -1:
                 data['orderStatus'] = 0
@@ -1595,6 +1612,7 @@ class mainWindowArea(QWidget):
                 'dimLength': 55, #Type INT
                 'dimWidth':9, #Type INT
                 'dimHeight':33, #Type INT
+                'qty':self.qty.value(),
                 }
             if data['orderStatus'] == -1:
                 data['orderStatus'] = 0
