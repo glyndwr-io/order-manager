@@ -10,8 +10,8 @@ default = {
     'lastName':'Bar',
     'email':'foo@bar.com',
     'product':'ACME Part',
-    'link':'https://morris.glyndwr.io/',
-    'salesperson':'John Doe',
+    'link':'https://morris.glyndwr.io',
+    'salesperson':'Ben Fedoruk',
     'orderNo':'55634',
     'backETA':'idk',
     'shipETA':'idk',
@@ -36,11 +36,11 @@ def readTemplate(template):
 
 def sendEmail(template, info=default):
     
-    msg_header = ('From: [Store Name] [Store Eamil]\n'
+    msg_header = ('From: Revolution Cycle <onlinestore@revolutioncycle.com>\n'
              'To: '+info['firstName']+" "+info['lastName']+' <'+info['email']+'>'
              'MIME-Version: 1.0\n'
              'Content-type: text/html\n'
-             'Subject: Online Payment Request from [Store Name]\n')
+             'Subject: Online Payment Request from Revolution Cycle\n')
     title = 'Hello '+info['firstName']
     
     msg_content = readTemplate(template)
@@ -50,7 +50,7 @@ def sendEmail(template, info=default):
     msg_content = msg_content.replace('[PRODUCT NAME HERE]', info['product'])
     msg_content = msg_content.replace('[SALESPERSON]', info['salesperson'])
     msg_content = msg_content.replace('[PRODUCT LINK]', info['link'])
-    msg_content = msg_content.replace('[ORDER NUMBER]', info['orderNo'])
+    msg_content = msg_content.replace('[ORDER NUMBER]', str(info['orderNo']))
    
     msg = (''.join([msg_header, msg_content])).encode()
     
