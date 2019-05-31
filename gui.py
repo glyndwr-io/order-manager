@@ -2120,11 +2120,24 @@ class mainWindowArea(QWidget):
             self.progressLabel.setText('Email Sent!')
             self.progress.setValue(100)
             sleep(1)
+            ex = QMessageBox()
+            ex.setText("Success: Payment Request has been created on our website and sent to "+self.custFirstName.text())
+            ex.setWindowTitle("Payment Request Sent")
+            ex.setIcon(QMessageBox().Information)
+            ex.exec()
             self.w.close()
             return
         else:
             self.progressLabel.setText('Error: Invalid Email Address Entered.')
             self.progress.setValue(0)
+            ex = QMessageBox()
+            ex.setText("Error: An Invalid Email address was entered. The Payment Request was created on our website, but not sent to the customer. " 
+                "Try re-entering their email address and sending it again, or tell the customer to enter "+self.orderNumber.text()+
+                " on the search bar of our website.")
+            ex.setWindowTitle("Invalid Email address")
+            ex.setIcon(QMessageBox().Information)
+            ex.exec()
+            self.w.close()
             return
 
     def sendPaymentRequest(self):
