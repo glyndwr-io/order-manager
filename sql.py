@@ -21,6 +21,7 @@ def generateID():
     cnx = connect()
 
     query="SELECT MAX(objectID) FROM Orders"
+    query2="SELECT MAX(objectID) FROM Claims"
     output =[]
 
     #Open Cursor for executing the query
@@ -33,12 +34,26 @@ def generateID():
     for item in cursor:
         output.append(item)
 
+    #Run the SELECT query
+    cursor.execute(query2)
+
+    #DEBUG: Print Query output to command line
+    for item in cursor:
+        output.append(item)
+
     #Tie up loose ends and return
     cursor.close()
     cnx.close()
-    if output[0][0] == None:
-        return 0
-    return (output[0][0]+1)
+
+    max=0
+    for item in output:
+        if item[0] != None:
+            if item[0] >= max:
+                max=item[0]
+    if max == 0:
+        return 1
+    else:
+        return max+1
 
 def makeFakeOrders():
     for i in range(20):
@@ -417,7 +432,7 @@ def fetchClaim(claimNo):
 
     cnx = connect()
 
-    if orderNo == None:
+    if claimNo == None:
         cnx.close()
         return
     
