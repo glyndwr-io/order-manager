@@ -161,21 +161,33 @@ class mainWindow(QMainWindow):
         self.title1 = QLabel('Database Connection Settings:')
         self.title2 = QLabel('WooCommerce Connection Settings:')
         
-        self.wLayout = QFormLayout()
-        self.wLayout.addRow(self.title1)
-        self.wLayout.addRow('Username:', self.user)
-        self.wLayout.addRow('Password:', self.pword)
-        self.wLayout.addRow('Host:', self.host)
-        self.wLayout.addRow('Database:', self.dataBase)
-        self.wLayout.addRow(self.title2)
-        self.wLayout.addRow('WooCommerce URL', url)
-        self.wLayout.addRow('Consumer Key', consumerKey)
-        self.wLayout.addRow('Consumer Secret', consumerSecret)
-        self.wLayout.addRow('API Version', version)
+        self.wLayoutMain = QVBoxLayout()
+        self.wLayoutDB = QFormLayout()
+        self.wLayoutWC = QFormLayout()
+        self.wButtons = QDialogButtonBox()
+        self.groupDB = QGroupBox('Database Connection')
+        self.groupWC = QGroupBox('WooCommerce Connection')
+        self.groupDB.setLayout(self.wLayoutDB)
+        self.groupWC.setLayout(self.wLayoutWC)
+        self.wLayoutMain.addWidget(self.groupDB)
+        self.wLayoutMain.addWidget(self.groupWC)
+        self.wLayoutMain.addWidget(self.wButtons)
+        
+        self.wLayoutDB.addRow('Username:', self.user)
+        self.wLayoutDB.addRow('Password:', self.pword)
+        self.wLayoutDB.addRow('Host:', self.host)
+        self.wLayoutDB.addRow('Database:', self.dataBase)
+        
+        self.wLayoutWC.addRow('WooCommerce URL', url)
+        self.wLayoutWC.addRow('Consumer Key', consumerKey)
+        self.wLayoutWC.addRow('Consumer Secret', consumerSecret)
+        self.wLayoutWC.addRow('API Version', version)
+
+        self.applySettings = self.wButtons.addButton(QDialogButtonBox.Ok)
 
         self.w.setGeometry(500, 400, 400, 300)
         self.w.setWindowTitle('Settings')
-        self.w.setLayout(self.wLayout)
+        self.w.setLayout(self.wLayoutMain)
 
         self.w.show()
         return
@@ -374,7 +386,7 @@ class mainWindowArea(QWidget):
 
         j=0
         for item in specialOrders:
-            if self.orderStatus[item[10]] == 'Requested' or self.orderStatus[item[10]] == 'Info Requested':
+            if self.orderStatus[item[10]] == 'Requested' or self.orderStatus[item[10]] == 'Info Requested' or self.orderStatus[item[10]] == 'Insuffecient Information':
                 importantFont.setBold(True)
             else:
                 importantFont.setBold(False)
@@ -543,7 +555,9 @@ class mainWindowArea(QWidget):
                 #Things
                 self.orderList[j].setText(14, str(item[14]))
                 self.orderList[j].setFont(14, importantFont)
-                
+                if self.orderStatus[item[10]] == 'Insuffecient Information':
+                    for xyz in range(15):
+                        self.orderList[j].setBackground(xyz,QColor("red"))
                 self.tableWidgetSO.addTopLevelItem(self.orderList[j])
             
             j+=1
@@ -580,7 +594,8 @@ class mainWindowArea(QWidget):
         j=0
         for item in specialOrders:
             if self.orderStatus[item['orderStatus']] == 'Requested' or \
-            self.orderStatus[item['orderStatus']] == 'Info Requested':
+            self.orderStatus[item['orderStatus']] == 'Info Requested' or\
+            self.orderStatus[item['orderStatus']] == 'Insuffecient Information':
                 importantFont.setBold(True)
             else:
                 importantFont.setBold(False)
@@ -749,7 +764,9 @@ class mainWindowArea(QWidget):
                 #Things
                 self.orderList[j].setText(14, str(item['salesRep']))
                 self.orderList[j].setFont(14, importantFont)
-                
+                if self.orderStatus[item['orderStatus']] == 'Insuffecient Information':
+                    for xyz in range(15):
+                        self.orderList[j].setBackground(xyz,QColor("red"))
                 self.tableWidgetSO.addTopLevelItem(self.orderList[j])
             
             j+=1
@@ -786,7 +803,8 @@ class mainWindowArea(QWidget):
         j=0
         for item in specialOrders:
             if self.orderStatus[item['orderStatus']] == 'Requested' or \
-            self.orderStatus[item['orderStatus']] == 'Info Requested':
+            self.orderStatus[item['orderStatus']] == 'Info Requested' or \
+            self.orderStatus[item['orderStatus']] == 'Insuffecient Information':
                 importantFont.setBold(True)
             else:
                 importantFont.setBold(False)
@@ -955,7 +973,9 @@ class mainWindowArea(QWidget):
                 #Things
                 self.orderList[j].setText(14, str(item['salesRep']))
                 self.orderList[j].setFont(14, importantFont)
-                
+                if self.orderStatus[item['orderStatus']] == 'Insuffecient Information':
+                    for xyz in range(15):
+                        self.orderList[j].setBackground(xyz,QColor("red"))
                 self.tableWidgetSO.addTopLevelItem(self.orderList[j])
             
             j+=1
@@ -1021,9 +1041,6 @@ class mainWindowArea(QWidget):
         self.supplier.addItems(suppliers)
         self.qty.setMaximum(999)
         self.qty.setMinimum(1)
-        
-        #self.sendOrder = QPushButton("Create")
-        #self.cancelCreation = QPushButton("Cancel")
 
         self.wButtons = QHBoxLayout()
         self.buttonBox = QDialogButtonBox()
@@ -1311,7 +1328,10 @@ class mainWindowArea(QWidget):
             self.orderDesc.setText(data['orderDesc'])
             self.dateOrdered.setGridVisible(True)
             self.dateRequested.setText(data['dateRequested'].isoformat())
-            self.qty.setValue(data['qty'])
+            if data['qty'] == None:
+                self.qty.setValue(1)
+            else:
+                self.qty.setValue(data['qty'])
             self.stickyDate = data['dateRequested'].isoformat()
             self.objectID = data['objectID']
 
@@ -1624,51 +1644,63 @@ class mainWindowArea(QWidget):
         self.payStatus = QComboBox()
         self.orderType = QCheckBox()
         self.salesRep = QComboBox()
-        self.qty = QSpinBox()
+        self.problem = QTextEdit()
+        self.raNumber = QLineEdit()
         
         self.payStatus.addItems(self.paymentStatus)
         self.salesRep.addItems(staffMembers)
         self.supplier.addItems(suppliers)
-        self.qty.setMaximum(999)
-        self.qty.setMinimum(1)
-        
-        #self.sendOrder = QPushButton("Create")
-        #self.cancelCreation = QPushButton("Cancel")
 
         self.wButtons = QHBoxLayout()
         self.buttonBox = QDialogButtonBox()
         self.wLayout = QGridLayout()
         self.wLayoutCust = QFormLayout()
+        self.wLayoutOrd = QFormLayout()
         self.wLayoutPart = QFormLayout()
         self.wLayoutNotes = QFormLayout()
+        self.wLayoutProblem = QFormLayout()
+        self.customerGroup = QGroupBox('Customer Info')
+        self.orderGroup = QGroupBox('Order Info')
+        self.productGroup = QGroupBox('Product Info')
+        self.problemGroup = QGroupBox('Problem Description')
+        self.additionalGroup = QGroupBox('Additional Notes')
 
+        self.customerGroup.setLayout(self.wLayoutCust)
+        self.orderGroup.setLayout(self.wLayoutOrd)
+        self.productGroup.setLayout(self.wLayoutPart)
+        self.problemGroup.setLayout(self.wLayoutProblem)
+        self.additionalGroup.setLayout(self.wLayoutNotes)
+
+        #---Customer Info Groupbox---#
         self.wLayoutCust.addRow("First Name", self.custFirstName)
         self.wLayoutCust.addRow("Last Name", self.custLastName)
         self.wLayoutCust.addRow("Phone Number", self.custPhoneNumber)
         self.wLayoutCust.addRow("E-Mail Address", self.custEmail)
-        self.wLayoutCust.addRow("Order Number", self.orderNumber)
-        self.wLayoutCust.addRow("Workorder?", self.orderType)
-        self.wLayoutCust.addRow("Payment Status", self.payStatus)
-        
+        #---Order Info Groupbox---#
+        self.wLayoutOrd.addRow("Order Number", self.orderNumber)
+        self.wLayoutOrd.addRow("Placed By", self.salesRep)
+        self.wLayoutOrd.addRow("RA Number", self.raNumber)
+        #---Product Info Groupbox---#
         self.wLayoutPart.addRow("Product", self.prodDesc)
         self.wLayoutPart.addRow("Part Number", self.partNo)
         self.wLayoutPart.addRow("Supplier", self.supplier)
         self.wLayoutPart.addRow("Price", self.partPrice)
-        self.wLayoutPart.addRow("Placed By", self.salesRep)
-        self.wLayoutPart.addRow("Quantity:", self.qty)
-
-        self.wLayoutNotes.addRow("Notes:", self.orderDesc)
+        #---Notes---#
+        self.wLayoutProblem.addRow("", self.problem)
+        self.wLayoutNotes.addRow("", self.orderDesc)
         self.objectID = 0
-
+        #---Buttons---#
         self.cancelCreation = self.buttonBox.addButton(QDialogButtonBox.Cancel)
         self.sendOrder = self.buttonBox.addButton(QDialogButtonBox.Ok)
         self.wButtons.addWidget(self.buttonBox)
         self.dateOrderedVar = None
 
-        self.wLayout.addLayout(self.wLayoutCust,0,0)
-        self.wLayout.addLayout(self.wLayoutPart,0,1)
-        self.wLayout.addLayout(self.wLayoutNotes,1,0,1,2)
-        self.wLayout.addLayout(self.wButtons,2,0,1,2)
+        self.wLayout.addWidget(self.customerGroup,0,0)
+        self.wLayout.addWidget(self.productGroup,0,1)
+        self.wLayout.addWidget(self.orderGroup,1,0)
+        self.wLayout.addWidget(self.problemGroup,1,1)
+        self.wLayout.addWidget(self.additionalGroup,2,0,1,2)
+        self.wLayout.addLayout(self.wButtons,3,0,1,2)
 
         self.sendOrder.clicked.connect(self.commitWarrantyClaim)
         self.cancelCreation.clicked.connect(self.closeBasic) 
@@ -1699,43 +1731,65 @@ class mainWindowArea(QWidget):
         self.payStatus = QComboBox()
         self.orderType = QCheckBox()
         self.salesRep = QComboBox()
+        self.problem = QTextEdit()
+        self.raNumber = QLineEdit()
         self.dateOrdered = QCalendarWidget()
+        self.dateRecieved = QCalendarWidget()
         self.dateRequested = QLabel()
-        self.qty = QSpinBox()
 
-        self.qty.setMaximum(999)
-        self.qty.setMinimum(1)
         self.payStatus.addItems(self.paymentStatus)
         self.salesRep.addItems(staffMembers)
         self.supplier.addItems(suppliers)
-        self.orderStatusChoice.addItems(self.orderStatus)
 
         self.wButtons = QHBoxLayout()
         self.buttonBox = QDialogButtonBox()
         self.wLayout = QGridLayout()
         self.wLayoutCust = QFormLayout()
+        self.wLayoutOrd = QFormLayout()
         self.wLayoutPart = QFormLayout()
         self.wLayoutNotes = QFormLayout()
+        self.wLayoutProblem = QFormLayout()
+        self.wLayoutDateShipped = QHBoxLayout()
+        self.wLayoutDateRecieved = QHBoxLayout()
+        self.customerGroup = QGroupBox('Customer Info')
+        self.orderGroup = QGroupBox('Order Info')
+        self.productGroup = QGroupBox('Product Info')
+        self.problemGroup = QGroupBox('Problem Description')
+        self.additionalGroup = QGroupBox('Additional Notes')
+        self.dateShippedGroup = QGroupBox('Date Shipped')
+        self.dateRecievedGroup = QGroupBox('Date Recieved')
+
+        self.customerGroup.setLayout(self.wLayoutCust)
+        self.orderGroup.setLayout(self.wLayoutOrd)
+        self.productGroup.setLayout(self.wLayoutPart)
+        self.problemGroup.setLayout(self.wLayoutProblem)
+        self.additionalGroup.setLayout(self.wLayoutNotes)
+        self.dateShippedGroup.setLayout(self.wLayoutDateShipped)
+        self.dateRecievedGroup.setLayout(self.wLayoutDateRecieved)
 
         self.wLayoutCust.addRow("First Name", self.custFirstName)
         self.wLayoutCust.addRow("Last Name", self.custLastName)
         self.wLayoutCust.addRow("Phone Number", self.custPhoneNumber)
         self.wLayoutCust.addRow("E-Mail Address", self.custEmail)
-        self.wLayoutCust.addRow("Order Number", self.orderNumber)
-        self.wLayoutCust.addRow("Workorder?", self.orderType)
-        self.wLayoutCust.addRow("Payment Status", self.payStatus)
+        
+        self.wLayoutOrd.addRow("Order Number", self.orderNumber)
+        self.wLayoutOrd.addRow("Payment Status", self.payStatus)
+        self.wLayoutOrd.addRow("Placed By", self.salesRep)
+        self.wLayoutOrd.addRow("Order Status:", self.orderStatusChoice)
+        self.wLayoutOrd.addRow("Dropped Off:", self.dateRequested)
         
         self.wLayoutPart.addRow("Product", self.prodDesc)
         self.wLayoutPart.addRow("Part Number", self.partNo)
         self.wLayoutPart.addRow("Supplier", self.supplier)
         self.wLayoutPart.addRow("Price", self.partPrice)
-        self.wLayoutPart.addRow("Quantity:", self.qty)
-        self.wLayoutPart.addRow("Placed By", self.salesRep)
-        self.wLayoutPart.addRow("Order Status:", self.orderStatusChoice)
-        self.wLayoutPart.addRow("Requested On:", self.dateRequested)
 
-        self.wLayoutNotes.addRow("Date Ordered", self.dateOrdered)
-        self.wLayoutNotes.addRow("Notes:", self.orderDesc)
+        self.wLayoutProblem.addWidget(self.problem)
+        
+        #self.wLayoutDate.addWidget(self.dateRequested)
+        self.wLayoutDateShipped.addWidget(self.dateOrdered)
+        self.wLayoutDateRecieved.addWidget(self.dateRecieved)
+        
+        self.wLayoutNotes.addRow("", self.orderDesc)
 
         if self.selectedClaimNumber != None:
             data = fetchClaim(self.selectedClaimNumber)
@@ -1744,11 +1798,10 @@ class mainWindowArea(QWidget):
             self.custPhoneNumber.setText(str(data['customerPhoneNo']))
             self.custEmail.setText(data['customerEmail'])
             self.orderNumber.setText(str(data['orderID']))
-            if data['isWorkOrder'] == 1:
-                self.orderType.setChecked(True)
             self.payStatus.setCurrentIndex(data['paymentStatus'])
             self.orderStatusChoice.setCurrentIndex(data['orderStatus'])
-            
+            if data['orderStatus'] != 'Recieved':
+                self.dateRecieved.setDisabled(True)
             self.prodDesc.setText(data['productDesc'])
             if type(data['dateOrdered']) == type(date.today()):
                 self.dateOrdered.setSelectedDate(data['dateOrdered'])
@@ -1758,34 +1811,40 @@ class mainWindowArea(QWidget):
             self.salesRep.setCurrentText(data['salesRep'])
             self.orderDesc.setText(data['orderDesc'])
             self.dateOrdered.setGridVisible(True)
+            self.dateRecieved.setGridVisible(True)
             self.dateRequested.setText(data['dateRequested'].isoformat())
+            if data['dateRecieved'] != None:
+                self.dateRequested.setSelectedDate(data['dateRecieved'].isoformat())
             self.stickyDate = data['dateRequested'].isoformat()
             self.objectID = data['objectID']
+            self.problem.setText(data['probDesc']) 
 
             self.cancelCreation = self.buttonBox.addButton(QDialogButtonBox.Cancel)
             self.removeOrder = self.buttonBox.addButton(QDialogButtonBox.Cancel)
             self.sendOrder = self.buttonBox.addButton(QDialogButtonBox.Ok)
-            self.addToOrder = self.buttonBox.addButton(QDialogButtonBox.Ok)
-            if self.payStatus.currentText() == "Pending Payment":
+            if self.payStatus.currentText() != "Pending Payment":
                 self.sendRequestButton = self.buttonBox.addButton(QDialogButtonBox.Reset)
                 self.sendRequestButton.setText('Send Payment Request')
                 self.sendRequestButton.clicked.connect(self.sendRequest)
             self.wButtons.addWidget(self.buttonBox)
             self.removeOrder.setText('Delete')
             self.sendOrder.setText('Update')
-            self.addToOrder.setText('Add Item')
             
-            self.wLayout.addLayout(self.wLayoutCust,0,0)
-            self.wLayout.addLayout(self.wLayoutPart,0,1)
-            self.wLayout.addLayout(self.wLayoutNotes,1,0,1,2)
-            self.wLayout.addLayout(self.wButtons,2,0,1,2)
+            self.wLayout.addWidget(self.customerGroup,0,0)
+            self.wLayout.addWidget(self.productGroup,0,1)
+            self.wLayout.addWidget(self.orderGroup,1,0)
+            self.wLayout.addWidget(self.problemGroup,1,1)
+            self.wLayout.addWidget(self.dateShippedGroup,2,0)
+            self.wLayout.addWidget(self.dateRecievedGroup,2,1)
+            self.wLayout.addWidget(self.additionalGroup,3,0,1,2)
+            self.wLayout.addLayout(self.wButtons,4,0,1,2)
 
             self.sendOrder.clicked.connect(self.cleanupEditiedClaim)
             self.removeOrder.clicked.connect(self.deleteClaimWarning)
             self.cancelCreation.clicked.connect(self.closeBasic)
 
             self.w.setGeometry(500, 400, 500, 550)
-            self.w.setWindowTitle('Edit Special Order')
+            self.w.setWindowTitle('Edit Warranty Claim')
             self.w.setLayout(self.wLayout)
             self.w.show()
         return
@@ -1801,6 +1860,11 @@ class mainWindowArea(QWidget):
                 theNumber = self.objectID
             else:
                 theNumber = int(self.orderNumber.text())
+
+            if self.orderStatusChoice.currentText() == 'Recieved':
+                recDate = self.dateRecieved.selectedDate().toPyDate()
+            else:
+                recDate = None
 
             data = {
                 'customerFirstName':self.custFirstName.text(),
@@ -1824,7 +1888,9 @@ class mainWindowArea(QWidget):
                 'dimLength': 55, #Type INT
                 'dimWidth':9, #Type INT
                 'dimHeight':33, #Type INT
-                'qty':self.qty.value(),
+                'raNumber':self.raNumber.text(), #Type TEXT
+                'probDesc':self.problem.toPlainText(), #Type TEXT
+                'dateRecieved':recDate, #Type DATE
                 }
             if data['orderStatus'] == -1:
                 data['orderStatus'] = 0
