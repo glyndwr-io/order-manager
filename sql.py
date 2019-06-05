@@ -389,13 +389,13 @@ def writeClaim(dataOrder=orderTemplate):
         "(customerFirstName, customerLastName, customerPhoneNo, customerEmail,"
         "productDesc, productPartNo, productSupplier, dateRequested, dateOrdered,"
         "orderID,orderStatus,orderDesc,paymentStatus,isWorkOrder,salesRep,"
-        "objectID,price,weight,dimLength,dimWidth,dimHeight)"
+        "objectID,price,weight,dimLength,dimWidth,dimHeight,raNumber,probDesc,dateRecieved)"
         " VALUES (%(customerFirstName)s, %(customerLastName)s, %(customerPhoneNo)s,"
         " %(customerEmail)s, %(productDesc)s, %(productPartNo)s, %(productSupplier)s,"
         " %(dateRequested)s, %(dateOrdered)s, %(orderID)s, %(orderStatus)s,"
         " %(orderDesc)s, %(paymentStatus)s, %(isWorkOrder)s, %(salesRep)s,"
         " %(objectID)s, %(price)s, %(weight)s, %(dimLength)s, %(dimWidth)s,"
-        " %(dimHeight)s);")
+        " %(dimHeight)s, %(raNumber)s, %(probDesc)s, %(dateRecieved)s);")
 
     #Write and commit changes to database
     cursor.execute(addOrder, dataOrder)
@@ -471,6 +471,9 @@ def fetchClaim(claimNo):
         'dimLength':output[0][18], #Type INT
         'dimWidth':output[0][19], #Type INT
         'dimHeight':output[0][20], #Type INT
+        'raNumber':output[0][21], #Type TEXT
+        'probDesc':output[0][22], #Type TEXT
+        'dateRecieved':output[0][23], #Type DATE
         }
 
     #Tie up loose ends and return
